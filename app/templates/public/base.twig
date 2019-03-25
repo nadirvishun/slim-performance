@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width,initial-scale=1, maximum-scale=1,user-scalable=no">
+    <title>{% block title %}三平台考核{% endblock %}</title>
+    <link rel="stylesheet" href="//libs.wl369.com/libs/bootstrap/3.3.7/css/bootstrap.min.css" type="text/css"/>
+    <script src="//g.alicdn.com/dingding/dingtalk-jsapi/2.0.57/dingtalk.open.js"></script>
+    {% block style %}{% endblock %}
+</head>
+<body>
+{% block content %}
+{% endblock %}
+<script type="text/javascript" src="{{ base_url() }}/js/jquery.min.js"></script>
+<script type="text/javascript" src="{{ base_url() }}/js/bootstrap.min.js"></script>
+<script>
+    var user_id = 0;
+    var is_admin = 0;
+    /**
+     * 钉钉免登
+     */
+    dd.ready(function () {
+        //判定是否存在
+        // sessionStorage.removeItem('user_info');//调试
+        var user_info = sessionStorage.getItem('user_info');
+        if (user_info == null) {
+            dd.runtime.permission.requestAuthCode({
+                corpId: "{{ corp_id }}",
+                onSuccess: function (result) {
+                    var code = result.code;
+                    //发起请求获取用户信息
+                    $.ajax({
+                        url: '{{ path_for('get-user-info') }}',
+                        type: 'post',
+                        dataType: 'json',
+                        data: {code: code}
+                    }).done(function (res) {
+                        // console.log('res:');
+                        // console.log(res);
+                        if (res.code == 0) {
+                            var json=JSON.stringify(res.data);
+                            sessionStorage.setItem('user_info', json);
+                            //由于异步所以这里直接显示
+                            user_id=res.data.user_id;
+                            is_admin=res.data.is_admin;
+                            if (is_admin == 1) {
+                                //显示管理员操作
+                                $('#month-create').show();
+                                $('.month-update').show();
+                                $('.month-behavior').show();
+                            }
+                        }
+                    }).fail(function (res) {
+
+                    })
+                },
+                onFail: function (err) {
+                }
+
+            })
+        }
+    });
+</script>
+{% block script %} {% endblock %}
+</body>
+</html>

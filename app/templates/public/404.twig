@@ -1,0 +1,14 @@
+{% extends '/public/base.twig' %}
+{% block title %}404{% endblock %}
+{% block content %}
+    <div class="container">
+        {% include '/public/header.twig' %}
+        <div class="row">
+            <div class="text-center">
+                <h1>404</h1>
+                <h2>OOPS!<br/>PAGE NOT FOUND!</h2>
+                <a href="{{ path_for('month') }}">返回首页</a>
+            </div>
+        </div>
+    </div>
+{% endblock %}

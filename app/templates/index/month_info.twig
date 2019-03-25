@@ -1,0 +1,201 @@
+{% extends '/public/base.twig' %}
+
+{% block title %} 月详情——三平台考核管理 {% endblock %}
+{% block style %}
+    <style>
+        .panel{margin-bottom: 0}
+        .blod{font-weight: bold;}
+        .panel-body{padding:1px}
+        .list-group{margin-bottom: 0}
+        .breadcrumb{margin-bottom: 10px}
+    </style>
+
+{% endblock %}
+
+{% block content %}
+    <div class="container">
+        {% include '/public/header.twig' %}
+        <div class="tab-content">
+            <div class="col-md-12">
+                <ol class="breadcrumb">
+                    <li><a href="{{ path_for('month') }}">首页</a></li>
+                    <li class="active">详情</li>
+                </ol>
+                <div class="panel panel-info">
+                    <div class="panel-heading">基本信息</div>
+                    <div class="panel-body">
+                        <ul class="list-group">
+                            <li class="list-group-item">平台： {{ info.platform_name }}</li>
+                            <li class="list-group-item">月份： {{ info.month_at }}</li>
+                            <li class="list-group-item">总分： <span class="text-success blod">{{ info.total_score }}</span></li>
+                            <li class="list-group-item">
+                                行为： <span class="text-danger">- {{ info.behavior_score }}</span>
+                                <button class="btn btn-warning btn-xs" id="behavior" style="margin-left: 10px">查看</button></li>
+                        </ul>
+                    </div>
+                </div>
+                <div class="panel panel-info">
+                    <div class="panel-heading">销售业绩</div>
+                    <div class="panel-body">
+                        <ul class="list-group">
+                            <li class="list-group-item">计划： {{ info.sale_plan }}</li>
+                            <li class="list-group-item">实际： {{ info.sale_fact }}</li>
+                            <li class="list-group-item">得分： <span class="text-success blod">{{ info.sale_score }}</span></li>
+                        </ul>
+                    </div>
+                </div>
+                <div class="panel panel-info">
+                    <div class="panel-heading">团队管理</div>
+                    <div class="panel-body">
+                        <ul class="list-group">
+                            <li class="list-group-item">计划： {{ info.team_plan }}</li>
+                            <li class="list-group-item">实际： {{ info.team_fact }}</li>
+                            <li class="list-group-item">得分： <span class="text-success blod">{{ info.team_score }}</span></li>
+                        </ul>
+                    </div>
+                </div>
+                <div class="panel panel-info">
+                    <div class="panel-heading">平台配合</div>
+                    <div class="panel-body">
+                        <ul class="list-group">
+                            <li class="list-group-item">计划： {{ info.cooperate_plan }}</li>
+                            <li class="list-group-item">实际： {{ info.cooperate_fact }}</li>
+                            <li class="list-group-item">得分： <span class="text-success blod">{{ info.cooperate_score }}</span></li>
+                        </ul>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+        <div class="modal fade" id="inputModal" tabindex="-1" role="dialog" aria-labelledby="inputModalLabel">
+            <div class="modal-dialog" role="document">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span
+                                    aria-hidden="true">&times;</span>
+                        </button>
+                        <h4 class="modal-title" id="inputModalLabel">行为记录</h4>
+                    </div>
+                    <div class="modal-body">
+                        <table class="table">
+                            <tr>
+                                <th width="60%">原因</th>
+                                <th width="40%" style="text-align: center" class="score-th">扣除分数</th>
+                                <th width="20%" style="text-align: center;display: none" class="operation-th" >操作</th>
+                            </tr>
+                            {% for item in behavior_list %}
+                                <tr {% if loop.index is odd %}class="info"{% endif %}>
+                                    <td> {{ item.reason }}</td>
+                                    <td style="text-align: center">{{ item.score }}</td>
+                                    <td style="text-align: center;display: none" class="delete-td">
+                                        <button type="button" data-id="{{ item.id }}" class="btn btn-danger btn-xs behavior-delete">
+                                            删除
+                                        </button>
+                                    </td>
+                                </tr>
+                            {% else %}
+                                <tr>
+                                    <td colspan="3" style="text-align: center">暂无数据</td>
+                                </tr>
+                            {% endfor %}
+                        </table>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+        {% include '/public/footer.twig' %}
+    </div>
+{% endblock %}
+{% block script %}
+    <script type="text/javascript" src="{{ base_url() }}/js/laydate/laydate.js"></script>
+    <script type="text/javascript">
+        $(function () {
+            //获取用户ID
+            var user_info= sessionStorage.getItem('user_info');
+            if(user_info !=null) {
+                var object_user_info = JSON.parse(user_info);
+                user_id = object_user_info.user_id;
+                is_admin = object_user_info.is_admin;
+            }
+            if(is_admin==1){
+                //修改样式展示
+                //将分数宽度设置为20%
+                $('.score-th').width('20%');
+                //显示操作
+                $('.operation-th').show();
+                $('.delete-td').show();
+
+                $('.behavior-delete').on('click',function(){
+                    console.log($(this));
+                    var id=$(this).data('id');
+                    dd.device.notification.confirm({
+                        message: "确定要删除此记录吗？",
+                        title: "提示",
+                        buttonLabels: ['确定', '取消'],
+                        onSuccess : function(result) {
+                            //0为第一个按钮
+                            if(result.buttonIndex===0) {
+                                $.ajax({
+                                    url: '{{ path_for('behavior-delete') }}',
+                                    type: 'post',
+                                    dataType: 'json',
+                                    data: {user_id: user_id, id: id}
+                                }).done(function (res) {
+                                    if (res.code == 0) {
+                                        dd.device.notification.toast({
+                                            icon: 'success', //icon样式，有success和error，默认为空
+                                            text: res.msg, //提示信息
+                                            duration: 2, //显示持续时间，单位秒，默认按系统规范[android只有两种(<=2s >2s)]
+                                            delay: 0, //延迟显示，单位秒，默认0
+                                            onSuccess: function (result) {
+                                                window.location.reload();
+                                            },
+                                            onFail: function (err) {
+                                            }
+                                        })
+                                    } else {
+                                        //如果失败，则继续禁用
+                                        dd.device.notification.toast({
+                                            icon: 'error', //icon样式，有success和error，默认为空
+                                            text: res.msg, //提示信息
+                                            duration: 2, //显示持续时间，单位秒，默认按系统规范[android只有两种(<=2s >2s)]
+                                            delay: 0, //延迟显示，单位秒，默认0
+                                            onSuccess: function (result) {
+                                            },
+                                            onFail: function (err) {
+                                            }
+                                        })
+                                    }
+                                }).fail(function (res) {
+                                    //如果失败，则继续禁用
+                                    dd.device.notification.toast({
+                                        icon: 'error', //icon样式，有success和error，默认为空
+                                        text: '删除失败', //提示信息
+                                        duration: 2, //显示持续时间，单位秒，默认按系统规范[android只有两种(<=2s >2s)]
+                                        delay: 0, //延迟显示，单位秒，默认0
+                                        onSuccess: function (result) {
+                                        },
+                                        onFail: function (err) {
+                                        }
+                                    })
+                                })
+                            }
+                        },
+                        onFail : function(err) {}
+                    });
+                })
+            }
+            /**
+             * 查看时时modal弹出
+             */
+            $('#behavior').on('click', function () {
+                $('#inputModal').modal();
+            });
+            /**
+             * 隐藏时间查询
+             */
+            $('#query-time').hide();
+        });
+    </script>
+{% endblock %}

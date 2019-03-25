@@ -1,0 +1,50 @@
+{% extends '/public/base.twig' %}
+
+{% block title %} 年记录——三平台考核管理 {% endblock %}
+{% block style %}
+{% endblock %}
+
+{% block content %}
+    <div class="container">
+        {% include '/public/header.twig' %}
+        <div class="tab-content">
+            <div role="tabpanel" class="tab-pane active" id="month">
+                <div class="table-responsive">
+                    <div class="col-md-12">
+
+                    </div>
+                    <table class="table">
+                        <tr>
+                            <th width="70%">平台</th>
+                            <th width="30%" style="text-align: center">总分</th>
+                        </tr>
+                        {% for item in list %}
+                            <tr {% if loop.index is odd %}class="info"{% endif %}>
+                                <td> {{ item.platform_name }}</td>
+                                <td style="text-align: center">{{ item.year_total_score }}</td>
+                            </tr>
+                        {% else %}
+                            <tr>
+                                <td colspan="3" style="text-align: center">暂无数据</td>
+                            </tr>
+                        {% endfor %}
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        {% include '/public/footer.twig' %}
+    </div>
+{% endblock %}
+{% block script %}
+    <script type="text/javascript" src="{{ base_url() }}/js/laydate/laydate.js"></script>
+    <script type="text/javascript">
+        $(function () {
+            laydate.render({
+                elem: '#m_month',
+                type: 'year',
+                value: '{{ year }}'
+            });
+        });
+    </script>
+{% endblock %}

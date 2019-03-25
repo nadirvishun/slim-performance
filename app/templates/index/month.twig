@@ -1,0 +1,475 @@
+{% extends '/public/base.twig' %}
+
+{% block title %} 月记录——三平台考核管理 {% endblock %}
+{% block style %}
+    <style>
+        .navbar-inverse .navbar-nav > li > a, .navbar-inverse .navbar-text {
+            color: #fff;
+            font-weight: bold;
+        }
+
+        .half {
+            float: left;
+            width: 40%
+        }
+
+        .sub-label, .sub-label-second {
+            float: left;
+            display: block;
+            width: 9%;
+            line-height: 34px;
+        }
+
+        .sub-label-second {
+            margin-left: 2%
+        }
+    </style>
+{% endblock %}
+
+{% block content %}
+    <div class="container">
+        {% include '/public/header.twig' %}
+        <div class="tab-content">
+            <div role="tabpanel" class="tab-pane active" id="month">
+                <div class="table-responsive">
+                    <div class="col-md-12">
+
+                    </div>
+                    <table class="table">
+                        <tr>
+                            <th width="40%">平台</th>
+                            <th width="30%" style="text-align: center">总分</th>
+                            <th width="30%" style="text-align: center">操作</th>
+                        </tr>
+                        {% for item in list %}
+                            <tr {% if loop.index is odd %}class="info"{% endif %}>
+                                <td> {{ item.platform_name }}</td>
+                                <td style="text-align: center">{{ item.total_score }}</td>
+                                <td style="text-align: center">
+                                    <button type="button" data-id="{{ item.id }}"
+                                            class="btn btn-info btn-xs month-info">详情
+                                    </button>
+                                    <button type="button" data-id="{{ item.id }}"
+                                            class="btn btn-danger btn-xs month-update" style="display: none">
+                                        修改
+                                    </button>
+                                    <button type="button" data-id="{{ item.id }}"
+                                            data-platform_id="{{ item.platform_id }}"
+                                            data-month_at="{{ item.month_at }}"
+                                            class="btn btn-warning btn-xs month-behavior" style="display: none">行为
+                                    </button>
+                                </td>
+                            </tr>
+                        {% else %}
+                            <tr>
+                                <td colspan="3" style="text-align: center">暂无数据</td>
+                            </tr>
+                        {% endfor %}
+                    </table>
+                </div>
+            </div>
+
+            <div class="col-md-12">
+                <button type="button" name="create" class="btn btn-success btn-block btn-lg" id="month-create" style="display: none">新增记录
+                </button>
+            </div>
+            <div id="log"></div>
+        </div>
+        {#每月记录modal#}
+        <div class="modal fade" id="inputModal" tabindex="-1" role="dialog" aria-labelledby="inputModalLabel">
+            <div class="modal-dialog" role="document">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span
+                                    aria-hidden="true">&times;</span>
+                        </button>
+                        <h4 class="modal-title" id="inputModalLabel">新增记录</h4>
+                    </div>
+                    <div class="modal-body">
+                        <form name="theform" id="theform" method="post">
+                            <div class="form-group field-score-user required">
+                                <label class="control-label" for="platform_id">选择平台</label>
+                                <select class="form-control" name="platform_id" id="platform_id">
+                                    {% for platformId,platformName in platformOptions %}
+                                        <option value="{{ platformId }}">{{ platformName }}</option>
+                                    {% endfor %}
+                                </select>
+
+                                <div class="help-block hide">平台必须选择</div>
+                            </div>
+                            <div class="form-group field-score-user required">
+                                <label class="control-label" for="">销售业绩（计划/实际）</label>
+                                <br>
+                                <span class="sub-label" for="sale_plan">计：</span>
+                                <input type="text" id="sale_plan" class="form-control half" name="sale_plan"
+                                       aria-required="true" aria-invalid="true">
+                                <span class="sub-label-second">实：</span>
+                                <input type="text" id="sale_fact" class="form-control half" name="sale_fact"
+                                       aria-required="true" aria-invalid="true">
+                                <div style="clear: both"></div>
+                                <div class="help-block hide">销售业绩（计划/实际）不能为空</div>
+                            </div>
+                            <div class="form-group field-score-user required">
+                                <label class="control-label" for="sale_score">销售业绩（得分）</label>
+                                <input type="number" id="sale_score" class="form-control" name="sale_score"
+                                       maxlength="2"
+                                       aria-required="true" aria-invalid="true">
+                                <div class="help-block hide">销售业绩（得分）不能为空</div>
+                            </div>
+                            <div class="form-group field-score-user required">
+                                <label class="control-label" for="team_plan">团队发展（计划/实际）</label>
+                                <br>
+                                <span class="sub-label">计：</span>
+                                <input type="text" id="team_plan" class="form-control half" name="team_plan"
+                                       aria-required="true" aria-invalid="true">
+                                <span class="sub-label-second">实：</span>
+                                <input type="text" id="team_fact" class="form-control half" name="team_fact"
+                                       aria-required="true" aria-invalid="true">
+                                <div style="clear: both"></div>
+                                <div class="help-block hide">团队发展（计划/实际）不能为空</div>
+                            </div>
+                            <div class="form-group field-score-user required">
+                                <label class="control-label" for="team_score">团队发展（得分）</label>
+                                <input type="number" id="team_score" class="form-control" name="team_score"
+                                       maxlength="2"
+                                       aria-required="true" aria-invalid="true">
+                                <div class="help-block hide">团队发展（得分）不能为空</div>
+                            </div>
+                            <div class="form-group field-score-user required">
+                                <label class="control-label" for="cooperate_plan">平台配合（计划/实际）</label>
+                                <br>
+                                <span class="sub-label">计：</span>
+                                <input type="text" id="cooperate_plan" class="form-control half" name="cooperate_plan"
+                                       aria-required="true" aria-invalid="true">
+                                <span class="sub-label-second">实：</span>
+                                <input type="text" id="cooperate_fact" class="form-control half" name="cooperate_fact"
+                                       aria-required="true" aria-invalid="true">
+                                <div style="clear: both"></div>
+                                <div class="help-block hide">平台配合（计划/实际）不能为空</div>
+                            </div>
+                            <div class="form-group field-score-user required">
+                                <label class="control-label" for="cooperate_score">平台配合（得分）</label>
+                                <input type="number" id="cooperate_score" class="form-control" name="cooperate_score"
+                                       maxlength="2" aria-required="true" aria-invalid="true">
+                                <div class="help-block hide">平台配合（得分）不能为空</div>
+                            </div>
+
+                            <div class="form-group field-score-user required">
+                                <label class="control-label" for="score-month_at">月份</label>
+                                <input type="text" id="score-month_at" class="form-control" name="month_at"
+                                       maxlength="18"
+                                       aria-required="true" aria-invalid="true">
+                                <div class="help-block hide">请选择月份</div>
+                            </div>
+                            <div class="form-group">
+                                <input type="hidden" name="id" id="id" value="0">
+                                <button id="save" class="btn btn-danger btn-block btn-md" type="button">保存</button>
+                            </div>
+                        </form>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+        {#行为modal#}
+        <div class="modal fade" id="behaviorModal" tabindex="-1" role="dialog" aria-labelledby="behaviorModalLabel">
+            <div class="modal-dialog" role="document">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span
+                                    aria-hidden="true">&times;</span>
+                        </button>
+                        <h4 class="modal-title" id="behaviorModalLabel">新增行为记录</h4>
+                    </div>
+                    <div class="modal-body">
+                        <form name="behavior-form" id="behavior-form" method="post">
+                            <div class="form-group field-score-user required">
+                                <label class="control-label" for="platform_id">选择平台</label>
+                                <select class="form-control" name="behavior_platform_id" id="behavior_platform_id">
+                                    {% for platformId,platformName in platformOptions %}
+                                        <option value="{{ platformId }}">{{ platformName }}</option>
+                                    {% endfor %}
+                                </select>
+
+                                <div class="help-block hide">平台必须选择</div>
+                            </div>
+                            <div class="form-group field-score-user required">
+                                <label class="control-label" for="behavior_reason">扣除原因</label>
+                                <input type="text" id="behavior_reason" class="form-control" name="behavior_reason"
+                                       aria-required="true" aria-invalid="true">
+                                <div class="help-block hide">扣除原因不能为空</div>
+                            </div>
+                            <div class="form-group field-score-user required">
+                                <label class="control-label" for="behavior_score">扣除分数</label>
+                                <input type="number" id="behavior_score" class="form-control" name="behavior_score"
+                                       maxlength="2"
+                                       aria-required="true" aria-invalid="true">
+                                <div class="help-block hide">扣除分数不能为空</div>
+                            </div>
+
+                            <div class="form-group field-score-user required">
+                                <label class="control-label" for="behavior_month_at">月份</label>
+                                <input type="text" id="behavior_month_at" class="form-control" name="behavior_month_at"
+                                       maxlength="18"
+                                       aria-required="true" aria-invalid="true">
+                                <div class="help-block hide">请选择月份</div>
+                            </div>
+                            <div class="form-group">
+                                <input type="hidden" id="record_id" name="record_id">
+                                <button id="behavior-save" class="btn btn-danger btn-block btn-md" type="button">保存
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+        {% include '/public/footer.twig' %}
+    </div>
+{% endblock %}
+{% block script %}
+    <script type="text/javascript" src="{{ base_url() }}/js/laydate/laydate.js"></script>
+    <script type="text/javascript">
+        $(function () {
+            //获取用户ID
+            var user_info= sessionStorage.getItem('user_info');
+            if(user_info !=null) {
+                var object_user_info = JSON.parse(user_info);
+                user_id = object_user_info.user_id;
+                is_admin = object_user_info.is_admin;
+                if (is_admin == 1) {
+                    //显示管理员操作
+                    $('#month-create').show();
+                    $('.month-update').show();
+                    $('.month-behavior').show();
+                }
+            }
+            laydate.render({
+                elem: '#m_month',
+                type: 'month',
+                value: '{{ month }}'
+            });
+            laydate.render({
+                elem: '#score-month_at',
+                type: 'month',
+                value: '{{ month }}'
+            });
+            laydate.render({
+                elem: '#behavior_month_at',
+                type: 'month',
+                value: '{{ month }}'
+            });
+
+            /*   $('.form-group input').on('focus', function () {
+
+                   $(this).parent(".form-group").removeClass("has-success");
+                   $(this).parent(".form-group").removeClass("has-error");
+               });
+               $('.form-group input').on('blur', function () {
+                   var val = $(this).val();
+                   var parent = $(this).parent(".form-group");
+                   if (val == '') {
+                       parent.removeClass("has-success");
+                       parent.addClass("has-error");
+                       $(this).next('.help-block').removeClass("hide");
+                   } else {
+                       parent.removeClass("has-error");
+                       parent.addClass("has-success");
+                       $(this).next('.help-block').addClass("hide");
+                   }
+               });*/
+            /**
+             * 行为modal弹出
+             */
+            $('.month-behavior').on('click', function () {
+                var platform_id = $(this).data('platform_id');
+                var behavior_month_at = $(this).data('month_at');
+                var record_id = $(this).data('id');
+                //赋值记录ID
+                $('#record_id').val(record_id);
+                //赋值且禁止选择平台
+                $('#behavior_platform_id').val(platform_id).prop('disabled', true);
+                //赋值且禁止选择日期
+                $('#behavior_month_at').val(behavior_month_at).prop('disabled', true);
+                //将数据清空
+                $('#behavior_reason').val('');
+                $('#behavior_score').val('');
+                //弹出
+                $('#behaviorModal').modal();
+            });
+            /**
+             * 行为记录保存
+             */
+            $('#behavior-save').on('click',function(){
+                $.ajax({
+                    url: '{{ path_for('behavior-submit') }}',
+                    type: 'post',
+                    dataType: 'json',
+                    data: $('#behavior-form').serialize()+'&user_id='+user_id
+                }).done(function (res) {
+                    if (res.code == 0) {
+                        dd.device.notification.toast({
+                            icon: 'success', //icon样式，有success和error，默认为空
+                            text: res.msg, //提示信息
+                            duration: 2, //显示持续时间，单位秒，默认按系统规范[android只有两种(<=2s >2s)]
+                            delay: 0, //延迟显示，单位秒，默认0
+                            onSuccess: function (result) {
+                                window.location.reload();
+                            },
+                            onFail: function (err) {
+                            }
+                        })
+                    } else {
+                        dd.device.notification.toast({
+                            icon: 'error', //icon样式，有success和error，默认为空
+                            text: res.msg, //提示信息
+                            duration: 2, //显示持续时间，单位秒，默认按系统规范[android只有两种(<=2s >2s)]
+                            delay: 0, //延迟显示，单位秒，默认0
+                            onSuccess: function (result) {
+                            },
+                            onFail: function (err) {
+                            }
+                        })
+                    }
+                }).fail(function (res) {
+                    dd.device.notification.toast({
+                        icon: 'error', //icon样式，有success和error，默认为空
+                        text: res.msg, //提示信息
+                        duration: 2, //显示持续时间，单位秒，默认按系统规范[android只有两种(<=2s >2s)]
+                        delay: 0, //延迟显示，单位秒，默认0
+                        onSuccess: function (result) {
+                        },
+                        onFail: function (err) {
+                        }
+                    })
+                });
+            });
+
+            /**
+             * 新增时modal弹出
+             */
+            $('#month-create').on('click', function () {
+                //取消禁止选择平台
+                $('#platform_id').prop('disabled', false);
+                //取消禁止选择日期
+                $('#score-month_at').prop('disabled', false);
+                //修改modal标题
+                $('#inputModalLabel').html('新增记录');
+                //将数据清空
+                $('#theform').find('input').each(function () {
+                    if ($(this).attr('name') != 'month_at') {
+                        $(this).val('');
+                    }
+                });
+                $('#inputModal').modal();
+            });
+            /**
+             * 修改时modal弹出
+             */
+            $('.month-update').on('click', function () {
+                var id = $(this).data('id');
+                $.ajax({
+                    //请求已有数据
+                    url: '{{ path_for('month-info') }}',
+                    type: 'post',
+                    dataType: 'json',
+                    data: {'id': id,'user_id':user_id}
+                }).done(function (res) {
+                    if (res.code == 0) {
+                        var info = res.data;
+                        //禁止选择平台
+                        $('#platform_id').val(info.platform_id).prop('disabled', true);
+                        //禁止选择日期
+                        $('#score-month_at').val(info.month_at).prop('disabled', true);
+                        //修改modal标题
+                        $('#inputModalLabel').html('修改记录');
+                        //赋值
+                        for (var i in info) {
+                            $('#' + i).val(info[i]);
+                        }
+                        $('#inputModal').modal();
+                    }
+                }).fail(function (res) {
+
+                });
+            });
+            /**
+             * 详情跳转
+             */
+            $('.month-info').on('click', function () {
+                var id = $(this).data('id');
+                var baseUrl = "{{ path_for('month-info') }}";
+                window.location.href = baseUrl + '?id=' + id;
+            });
+            /**
+             * 提交
+             */
+            $('#save').on('click', function () {
+                //提交前将修改禁用的都取消掉
+                if ($('#id').val() > 0) {
+                    //取消禁止选择平台
+                    $('#platform_id').prop('disabled', false);
+                    //取消禁止选择日期
+                    $('#score-month_at').prop('disabled', false);
+                }
+                $.ajax({
+                    url: '{{ path_for('month-submit') }}',
+                    type: 'post',
+                    dataType: 'json',
+                    data: $('#theform').serialize()+'&user_id='+user_id
+                }).done(function (res) {
+                    if (res.code == 0) {
+                        dd.device.notification.toast({
+                            icon: 'success', //icon样式，有success和error，默认为空
+                            text: res.msg, //提示信息
+                            duration: 2, //显示持续时间，单位秒，默认按系统规范[android只有两种(<=2s >2s)]
+                            delay: 0, //延迟显示，单位秒，默认0
+                            onSuccess: function (result) {
+                                window.location.reload();
+                            },
+                            onFail: function (err) {
+                            }
+                        })
+                    } else {
+                        //如果失败，则继续禁用
+                        if ($('#id').val() > 0) {
+                            //取消禁止选择平台
+                            $('#platform_id').prop('disabled', true);
+                            //取消禁止选择日期
+                            $('#score-month_at').prop('disabled', true);
+                        }
+                        dd.device.notification.toast({
+                            icon: 'error', //icon样式，有success和error，默认为空
+                            text: res.msg, //提示信息
+                            duration: 2, //显示持续时间，单位秒，默认按系统规范[android只有两种(<=2s >2s)]
+                            delay: 0, //延迟显示，单位秒，默认0
+                            onSuccess: function (result) {
+                            },
+                            onFail: function (err) {
+                            }
+                        })
+                    }
+                }).fail(function (res) {
+                    //如果失败，则继续禁用
+                    if ($('#id').val() > 0) {
+                        //取消禁止选择平台
+                        $('#platform_id').prop('disabled', true);
+                        //取消禁止选择日期
+                        $('#score-month_at').prop('disabled', true);
+                    }
+                    dd.device.notification.toast({
+                        icon: 'error', //icon样式，有success和error，默认为空
+                        text: '操作失败', //提示信息
+                        duration: 2, //显示持续时间，单位秒，默认按系统规范[android只有两种(<=2s >2s)]
+                        delay: 0, //延迟显示，单位秒，默认0
+                        onSuccess: function (result) {
+                        },
+                        onFail: function (err) {
+                        }
+                    })
+                });
+            });
+        });
+    </script>
+{% endblock %}
