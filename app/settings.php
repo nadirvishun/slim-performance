@@ -23,15 +23,17 @@ return [
             'database' => 'performance',
             'username' => 'root',
             'password' => 'root',
-            'charset'   => 'utf8',
+            'charset' => 'utf8',
             'collation' => 'utf8_unicode_ci',
-            'prefix'    => '',
+            'prefix' => '',
         ],
 
         //twig
-        'view'=>[
+        'view' => [
             'template_path' => __DIR__ . '/templates/',
-            'cache_path'=> __DIR__ . '/../runtime/cache/',
+            'cache_path' => __DIR__ . '/../runtime/cache/',
+            'debug' => false,
+            'auto_reload' => true,
         ]
     ],
 ];

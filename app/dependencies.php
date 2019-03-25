@@ -26,7 +26,8 @@ $container['view'] = function ($c) {
     $settings = $c->get('settings')['view'];
     $view = new \Slim\Views\Twig($settings['template_path'], [
         'cache' => $settings['cache_path'],
-        'debug'=>true
+        'debug' => $settings['debug'],
+        'auto_reload' => $settings['auto_reload']
     ]);
     // Instantiate and add Slim specific extension
     $router = $c->get('router');
