@@ -9,11 +9,9 @@ use Psr\Container\ContainerInterface;
 Class BaseController
 {
     protected $ci;
-    protected $renderer;
     protected $view;
     protected $db;
     protected $ding;
-    protected $corpId;
 
     public function __construct(ContainerInterface $ci)
     {
@@ -23,8 +21,8 @@ Class BaseController
         $this->view = $this->ci->view;
         //orm激活
         $this->db = $this->ci->db;
-        $this->ding = new Platform();
-        $this->corpId = $this->ding->getCorpId();
+        //钉钉
+        $this->ding = $this->ci->ding;
     }
 
     /**

@@ -36,3 +36,10 @@ $container['view'] = function ($c) {
 
     return $view;
 };
+
+//dingding
+$container['ding'] = function ($c) {
+    $settings = $c->get('settings')['ding'];
+    $ding = new \EasyDingTalk\Application($settings);
+    return $ding;
+};

@@ -38,11 +38,13 @@ Class IndexController extends BaseController
         }
         //获取选择列表
         $platformOptions = Platform::getPlatformOptions();
+        $config = $this->ding->config;
+        $corpId = $config->get('corp_id');
         $data = [
             'month' => $month,
             'platformOptions' => $platformOptions,
             'list' => $list,
-            'corp_id' => $this->corpId
+            'corp_id' => $corpId
         ];
 
         return $this->view->render($response, 'index/month.twig', $data);
@@ -79,7 +81,9 @@ Class IndexController extends BaseController
         $info = $info->toArray();
         $info['month_at'] = date('Y-m', $info['month']);
         $info['platform_name'] = Platform::getPlatformOptions($info['platform_id']);
-        return $this->view->render($response, 'index/month_info.twig', ['info' => $info, 'behavior_list' => $behaviorList, 'corp_id' => $this->corpId]);
+        $config = $this->ding->config;
+        $corpId = $config->get('corp_id');
+        return $this->view->render($response, 'index/month_info.twig', ['info' => $info, 'behavior_list' => $behaviorList, 'corp_id' => $corpId]);
     }
 
     /**
@@ -96,7 +100,7 @@ Class IndexController extends BaseController
         $userId = isset($post['user_id']) ? $post['user_id'] : '';
         $noAuth = true;
         if (!empty($userId)) {
-            $adminIds = $this->ding->getAdminIds();
+            $adminIds = Platform::getAdminIds();
             if (in_array($userId, $adminIds)) {
                 $noAuth = false;
             }
@@ -200,7 +204,7 @@ Class IndexController extends BaseController
         $userId = isset($post['user_id']) ? $post['user_id'] : '';
         $noAuth = true;
         if (!empty($userId)) {
-            $adminIds = $this->ding->getAdminIds();
+            $adminIds = Platform::getAdminIds();
             if (in_array($userId, $adminIds)) {
                 $noAuth = false;
             }
@@ -260,7 +264,7 @@ Class IndexController extends BaseController
         $userId = isset($post['user_id']) ? $post['user_id'] : '';
         $noAuth = true;
         if (!empty($userId)) {
-            $adminIds = $this->ding->getAdminIds();
+            $adminIds = Platform::getAdminIds();
             if (in_array($userId, $adminIds)) {
                 $noAuth = false;
             }
@@ -311,11 +315,13 @@ Class IndexController extends BaseController
             }
             unset($value);
         }
+        $config = $this->ding->config;
+        $corpId = $config->get('corp_id');
         $data = [
             'year' => $year,
             'list' => $list,
             'active' => 'year',
-            'corp_id' => $this->corpId
+            'corp_id' => $corpId
         ];
 
         return $this->view->render($response, 'index/year.twig', $data);
@@ -331,14 +337,15 @@ Class IndexController extends BaseController
     public function getUserInfo($request, $response, $args)
     {
         $code = $request->getParsedBody()['code'];
-        $userInfo = $this->ding->getUserInfo($code);
-        if ($userInfo['errcode'] == 0) {
+        $user = $this->ding->user;
+        $userInfo = $user->getUserInfo($code);
+        if (!empty($userInfo) && $userInfo['errcode'] == 0) {
             $userId = $userInfo['userid'];
             $data = [
                 'user_id' => $userId,
                 'is_admin' => 0
             ];
-            $adminIds = $this->ding->getAdminIds();
+            $adminIds = Platform::getAdminIds();
             if (in_array($userId, $adminIds)) {
                 $data['is_admin'] = 1;
             }

@@ -34,6 +34,15 @@ return [
             'cache_path' => __DIR__ . '/../runtime/cache/',
             'debug' => false,
             'auto_reload' => true,
+        ],
+
+        //dingding
+        'ding' => [
+            'corp_id' => '',
+            'corp_secret' => '',
+            'app_key' => '',
+            'app_secret' => '',
+            'agent_id' => ''
         ]
     ],
 ];
